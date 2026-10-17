@@ -1,0 +1,231 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content">
+
+    <!-- MODE BUBBLE KECIL (SAAT DI-MINIMIZE) -->
+    <Button
+        android:id="@+id/btnBubble"
+        android:layout_width="58dp"
+        android:layout_height="58dp"
+        android:text="🤖"
+        android:textSize="22sp"
+        android:backgroundTint="#FF2A54"
+        android:textColor="#FFFFFF"
+        android:visibility="gone"/>
+
+    <!-- MODE PANEL OVERLAY LENGKAP -->
+    <LinearLayout
+        android:id="@+id/panelExpanded"
+        android:layout_width="290dp"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="#E612121A"
+        android:padding="14dp">
+
+        <!-- Header Drag Bar -->
+        <LinearLayout
+            android:id="@+id/headerDrag"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:background="#222232"
+            android:padding="8dp">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="✥ GRANNY MACRO HUD"
+                android:textColor="#FF2A54"
+                android:textSize="13sp"
+                android:textStyle="bold"/>
+
+            <Button
+                android:id="@+id/btnMinimize"
+                android:layout_width="38dp"
+                android:layout_height="34dp"
+                android:text="_"
+                android:textSize="12sp"
+                android:padding="0dp"
+                android:backgroundTint="#35354A"
+                android:textColor="#FFFFFF"
+                android:layout_marginEnd="4dp"/>
+
+            <Button
+                android:id="@+id/btnCloseOverlay"
+                android:layout_width="38dp"
+                android:layout_height="34dp"
+                android:text="✕"
+                android:textSize="12sp"
+                android:padding="0dp"
+                android:backgroundTint="#E6194B"
+                android:textColor="#FFFFFF"/>
+        </LinearLayout>
+
+        <!-- Layar Status -->
+        <TextView
+            android:id="@+id/txtOverlayStatus"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:background="#0B0B10"
+            android:padding="8dp"
+            android:text="🟢 Siap | Waktu: 00:00"
+            android:textColor="#00F59B"
+            android:textSize="12sp"
+            android:textStyle="bold"/>
+
+        <!-- FITUR 3: GANTI SAVE-AN (SLOT SELECTOR) -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="PILIH &amp; GANTI SAVE-AN MACRO:"
+            android:textColor="#9E9EAE"
+            android:textSize="10sp"
+            android:textStyle="bold"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginTop="4dp">
+
+            <Button
+                android:id="@+id/btnPrevSave"
+                android:layout_width="48dp"
+                android:layout_height="40dp"
+                android:text="◀"
+                android:padding="0dp"
+                android:backgroundTint="#28283A"
+                android:textColor="#FFFFFF"/>
+
+            <TextView
+                android:id="@+id/txtCurrentSlot"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="Slot 1: Rute Pintu\n(Kosong)"
+                android:textColor="#FFFFFF"
+                android:textSize="11sp"
+                android:textStyle="bold"/>
+
+            <Button
+                android:id="@+id/btnNextSave"
+                android:layout_width="48dp"
+                android:layout_height="40dp"
+                android:text="▶"
+                android:padding="0dp"
+                android:backgroundTint="#28283A"
+                android:textColor="#FFFFFF"/>
+        </LinearLayout>
+
+        <!-- FITUR 1: MULAI BUAT MACRO & PLAY -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="8dp">
+
+            <Button
+                android:id="@+id/btnStartMacro"
+                android:layout_width="0dp"
+                android:layout_height="46dp"
+                android:layout_weight="1"
+                android:text="🔴 BUAT MACRO"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:backgroundTint="#E6194B"
+                android:textColor="#FFFFFF"
+                android:layout_marginEnd="4dp"/>
+
+            <Button
+                android:id="@+id/btnPlayMacro"
+                android:layout_width="0dp"
+                android:layout_height="46dp"
+                android:layout_weight="1"
+                android:text="▶️ PLAY SAVE"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:backgroundTint="#00C875"
+                android:textColor="#0B0B10"/>
+        </LinearLayout>
+
+        <!-- FITUR 2 & 4: SAVE MACRO & HAPUS SAVE-AN -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="4dp">
+
+            <Button
+                android:id="@+id/btnSaveMacro"
+                android:layout_width="0dp"
+                android:layout_height="44dp"
+                android:layout_weight="1"
+                android:text="💾 SIMPAN SAVE"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:backgroundTint="#2196F3"
+                android:textColor="#FFFFFF"
+                android:layout_marginEnd="4dp"/>
+
+            <Button
+                android:id="@+id/btnDeleteSave"
+                android:layout_width="0dp"
+                android:layout_height="44dp"
+                android:layout_weight="1"
+                android:text="🗑️ HAPUS SAVE"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:backgroundTint="#FF6D00"
+                android:textColor="#FFFFFF"/>
+        </LinearLayout>
+
+        <!-- FITUR TAMBAHAN: SPEED, LOOP & STOP -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="4dp">
+
+            <Button
+                android:id="@+id/btnSpeed"
+                android:layout_width="0dp"
+                android:layout_height="40dp"
+                android:layout_weight="1"
+                android:text="⚡ Speed: 1x"
+                android:textSize="10sp"
+                android:backgroundTint="#2A2A3C"
+                android:textColor="#FFD166"
+                android:layout_marginEnd="4dp"/>
+
+            <Button
+                android:id="@+id/btnLoop"
+                android:layout_width="0dp"
+                android:layout_height="40dp"
+                android:layout_weight="1"
+                android:text="🔁 Loop: OFF"
+                android:textSize="10sp"
+                android:backgroundTint="#2A2A3C"
+                android:textColor="#FFFFFF"
+                android:layout_marginEnd="4dp"/>
+
+            <Button
+                android:id="@+id/btnStopAll"
+                android:layout_width="0dp"
+                android:layout_height="40dp"
+                android:layout_weight="1"
+                android:text="⏹️ STOP"
+                android:textSize="10sp"
+                android:textStyle="bold"
+                android:backgroundTint="#4A4A60"
+                android:textColor="#FFFFFF"/>
+        </LinearLayout>
+
+    </LinearLayout>
+</FrameLayout>
