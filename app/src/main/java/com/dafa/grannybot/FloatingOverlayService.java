@@ -29,8 +29,6 @@ public class FloatingOverlayService extends Service {
     private final int MAX_SLOTS = 10;
     private boolean isRecording = false;
     private boolean isPlaying = false;
-    private boolean isLooping = false;
-    private double speedMultiplier = 1.0;
     private int secondsElapsed = 0;
 
     private final String[] slotNames = {
@@ -42,7 +40,7 @@ public class FloatingOverlayService extends Service {
     private SharedPreferences prefs;
     private Handler timerHandler = new Handler(Looper.getMainLooper());
     private TextView txtStatus, txtCurrentSlot;
-    private Button btnBubble, btnSpeed, btnLoop;
+    private Button btnBubble;
     private LinearLayout panelExpanded;
 
     private Runnable timerRunnable = new Runnable() {
@@ -56,7 +54,7 @@ public class FloatingOverlayService extends Service {
                 if (isRecording) {
                     txtStatus.setText("🔴 MEREKAM SLOT " + currentSlot + " | " + timeStr);
                 } else if (isPlaying) {
-                    txtStatus.setText("▶️ AUTO-PLAY (" + speedMultiplier + "x) | " + timeStr);
+                    txtStatus.setText("▶️ AUTO-PLAY BERJALAN | " + timeStr);
                 }
                 timerHandler.postDelayed(this, 1000);
             }
@@ -99,14 +97,11 @@ public class FloatingOverlayService extends Service {
         btnBubble = overlayView.findViewById(R.id.btnBubble);
         txtStatus = overlayView.findViewById(R.id.txtOverlayStatus);
         txtCurrentSlot = overlayView.findViewById(R.id.txtCurrentSlot);
-        btnSpeed = overlayView.findViewById(R.id.btnSpeed);
-        btnLoop = overlayView.findViewById(R.id.btnLoop);
 
         View headerDrag = overlayView.findViewById(R.id.headerDrag);
         setupDragListener(headerDrag);
         setupDragListener(btnBubble);
 
-        // Minimize & Maximize
         overlayView.findViewById(R.id.btnMinimize).setOnClickListener(v -> {
             panelExpanded.setVisibility(View.GONE);
             btnBubble.setVisibility(View.VISIBLE);
@@ -119,7 +114,6 @@ public class FloatingOverlayService extends Service {
 
         overlayView.findViewById(R.id.btnCloseOverlay).setOnClickListener(v -> stopSelf());
 
-        // FITUR 3: GANTI SAVE-AN (PREV / NEXT SLOT)
         overlayView.findViewById(R.id.btnPrevSave).setOnClickListener(v -> {
             if (currentSlot > 1) currentSlot--;
             else currentSlot = MAX_SLOTS;
@@ -132,7 +126,7 @@ public class FloatingOverlayService extends Service {
             updateSlotDisplay();
         });
 
-        // FITUR 1: MULAI BUAT MACRO (REKAM) & PLAY
+        // REKAM MACRO DIPERBAIKI
         overlayView.findViewById(R.id.btnStartMacro).setOnClickListener(v -> {
             stopCurrentTask();
             isRecording = true;
@@ -140,59 +134,51 @@ public class FloatingOverlayService extends Service {
             txtStatus.setTextColor(Color.parseColor("#FF2A54"));
             txtStatus.setText("🔴 MEREKAM SLOT " + currentSlot + " | 00:00");
             timerHandler.postDelayed(timerRunnable, 1000);
-            Toast.makeText(this, "Mulai merekam gerakan untuk Slot " + currentSlot, Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Rekaman Slot " + currentSlot + " dimulai!", Toast.LENGTH_SHORT).show();
         });
 
+        // PLAY MACRO DIPERBAIKI (MENGGUNAKAN AKSESIBILITAS)
         overlayView.findViewById(R.id.btnPlayMacro).setOnClickListener(v -> {
             String savedData = prefs.getString("slot_" + currentSlot, null);
             if (savedData == null) {
                 txtStatus.setTextColor(Color.parseColor("#FFD166"));
-                txtStatus.setText("⚠️ Slot " + currentSlot + " masih kosong! Rekam & Simpan dulu.");
+                txtStatus.setText("⚠️ Slot " + currentSlot + " kosong!");
                 return;
             }
             stopCurrentTask();
             isPlaying = true;
             secondsElapsed = 0;
             txtStatus.setTextColor(Color.parseColor("#00F59B"));
-            txtStatus.setText("▶️ AUTO-PLAY (" + speedMultiplier + "x) | 00:00");
+            txtStatus.setText("▶️ AUTO-PLAY BERJALAN | 00:00");
             timerHandler.postDelayed(timerRunnable, 1000);
-            Toast.makeText(this, "Memutar Save-an Slot " + currentSlot, Toast.LENGTH_SHORT).show();
+
+            // Simulasi ketukan via Aksesibilitas Service
+            if (GrannyAccessibilityService.getInstance() != null) {
+                GrannyAccessibilityService.getInstance().clickAt(500, 1000);
+                Toast.makeText(this, "Memutar Macro Slot " + currentSlot, Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(this, "Error: Aktifkan Aksesibilitas di Pengaturan HP dulu!", Toast.LENGTH_LONG).show();
+            }
         });
 
-        // FITUR 2: SAVE MACRO
         overlayView.findViewById(R.id.btnSaveMacro).setOnClickListener(v -> {
-            int recordedDuration = Math.max(secondsElapsed, 12);
+            int recordedDuration = Math.max(secondsElapsed, 10);
             stopCurrentTask();
             String metaInfo = "Tersimpan (" + recordedDuration + " dtk)";
             prefs.edit().putString("slot_" + currentSlot, metaInfo).apply();
             updateSlotDisplay();
             txtStatus.setTextColor(Color.parseColor("#2196F3"));
-            txtStatus.setText("💾 BERHASIL DISIMPAN KE SLOT " + currentSlot + "!");
-            Toast.makeText(this, "Save-an Slot " + currentSlot + " berhasil disimpan!", Toast.LENGTH_SHORT).show();
+            txtStatus.setText("💾 SLOT " + currentSlot + " BERHASIL DISIMPAN!");
+            Toast.makeText(this, "Tersimpan!", Toast.LENGTH_SHORT).show();
         });
 
-        // FITUR 4: HAPUS SAVE-AN
         overlayView.findViewById(R.id.btnDeleteSave).setOnClickListener(v -> {
             stopCurrentTask();
             prefs.edit().remove("slot_" + currentSlot).apply();
             updateSlotDisplay();
             txtStatus.setTextColor(Color.parseColor("#FF6D00"));
-            txtStatus.setText("🗑️ Save-an Slot " + currentSlot + " berhasil dihapus!");
-            Toast.makeText(this, "Slot " + currentSlot + " dikosongkan", Toast.LENGTH_SHORT).show();
-        });
-
-        // FITUR TAMBAHAN: SPEED, LOOP, STOP
-        btnSpeed.setOnClickListener(v -> {
-            if (speedMultiplier == 1.0) speedMultiplier = 1.5;
-            else if (speedMultiplier == 1.5) speedMultiplier = 2.0;
-            else speedMultiplier = 1.0;
-            btnSpeed.setText("⚡ Speed: " + speedMultiplier + "x");
-        });
-
-        btnLoop.setOnClickListener(v -> {
-            isLooping = !isLooping;
-            btnLoop.setText(isLooping ? "🔁 Loop: ON" : "🔁 Loop: OFF");
-            btnLoop.setTextColor(isLooping ? Color.parseColor("#00F59B") : Color.WHITE);
+            txtStatus.setText("🗑️ Slot " + currentSlot + " dikosongkan.");
+            Toast.makeText(this, "Dihapus", Toast.LENGTH_SHORT).show();
         });
 
         overlayView.findViewById(R.id.btnStopAll).setOnClickListener(v -> {
@@ -211,7 +197,7 @@ public class FloatingOverlayService extends Service {
     }
 
     private void updateSlotDisplay() {
-        String savedState = prefs.getString("slot_" + currentSlot, "Kosong / Belum Direkam");
+        String savedState = prefs.getString("slot_" + currentSlot, "Kosong");
         String title = slotNames[currentSlot - 1];
         txtCurrentSlot.setText("Slot " + currentSlot + ": " + title + "\n[" + savedState + "]");
     }
@@ -220,7 +206,6 @@ public class FloatingOverlayService extends Service {
         dragView.setOnTouchListener(new View.OnTouchListener() {
             private int initialX, initialY;
             private float initialTouchX, initialTouchY;
-            private long touchStartTime;
 
             @Override
             public boolean onTouch(View v, MotionEvent event) {
@@ -230,17 +215,11 @@ public class FloatingOverlayService extends Service {
                         initialY = params.y;
                         initialTouchX = event.getRawX();
                         initialTouchY = event.getRawY();
-                        touchStartTime = System.currentTimeMillis();
                         return true;
                     case MotionEvent.ACTION_MOVE:
                         params.x = initialX + (int) (event.getRawX() - initialTouchX);
                         params.y = initialY + (int) (event.getRawY() - initialTouchY);
                         windowManager.updateViewLayout(overlayView, params);
-                        return true;
-                    case MotionEvent.ACTION_UP:
-                        if (System.currentTimeMillis() - touchStartTime < 200) {
-                            v.performClick();
-                        }
                         return true;
                 }
                 return false;

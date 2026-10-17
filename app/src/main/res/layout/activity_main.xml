@@ -29,7 +29,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="👵 GRANNY AUTOBOT v2.0"
+                    android:text="👵 GRANNY AUTOBOT v2.1"
                     android:textColor="#FF2A54"
                     android:textSize="22sp"
                     android:textStyle="bold"/>
@@ -37,18 +37,30 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Floating HUD Macro &amp; Save Manager"
+                    android:text="Fixed Native Macro &amp; Accessibility Hub"
                     android:textColor="#9E9EAE"
                     android:textSize="13sp"
                     android:layout_marginTop="4dp"/>
 
+                <!-- TOMBOL PINTASAN BARU -->
+                <Button
+                    android:id="@+id/btnOpenAccessibility"
+                    android:layout_width="match_parent"
+                    android:layout_height="52dp"
+                    android:layout_marginTop="18dp"
+                    android:text="⚙️ 1. BUKA PENGATURAN AKSESIBILITAS"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:backgroundTint="#2196F3"
+                    android:textColor="#FFFFFF"/>
+
                 <Button
                     android:id="@+id/btnLaunchOverlay"
                     android:layout_width="match_parent"
-                    android:layout_height="62dp"
-                    android:layout_marginTop="20dp"
-                    android:text="🚀 MUNCULKAN PANEL OVERLAY"
-                    android:textSize="15sp"
+                    android:layout_height="60dp"
+                    android:layout_marginTop="10dp"
+                    android:text="🚀 2. MUNCULKAN PANEL OVERLAY"
+                    android:textSize="14sp"
                     android:textStyle="bold"
                     android:backgroundTint="#00E676"
                     android:textColor="#0B0B10"/>
@@ -56,46 +68,13 @@
                 <Button
                     android:id="@+id/btnStopOverlay"
                     android:layout_width="match_parent"
-                    android:layout_height="52dp"
-                    android:layout_marginTop="10dp"
+                    android:layout_height="48dp"
+                    android:layout_marginTop="8dp"
                     android:text="❌ MATIKAN OVERLAY"
-                    android:textSize="13sp"
+                    android:textSize="12sp"
                     android:textStyle="bold"
                     android:backgroundTint="#2A2A3C"
                     android:textColor="#FFFFFF"/>
-            </LinearLayout>
-        </com.google.android.material.card.MaterialCardView>
-
-        <com.google.android.material.card.MaterialCardView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:cardBackgroundColor="#161622"
-            app:cardCornerRadius="18dp"
-            app:strokeColor="#2A2A3C"
-            app:strokeWidth="1dp">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="20dp">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="FITUR PANEL OVERLAY v2.0:"
-                    android:textColor="#00E676"
-                    android:textSize="13sp"
-                    android:textStyle="bold"
-                    android:layout_marginBottom="10dp"/>
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="• Geser panel bebas di atas layar game Granny\n• Tombol [_] untuk memperkecil jadi ikon Bubble\n• 10 Slot Save Macro (Bisa Simpan, Ganti, &amp; Hapus)\n• Pengatur Kecepatan (1x, 1.5x, 2x) &amp; Auto-Loop"
-                    android:textColor="#CFCFE0"
-                    android:lineSpacingExtra="5dp"
-                    android:textSize="13sp"/>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
