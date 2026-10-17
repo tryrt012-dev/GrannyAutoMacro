@@ -21,7 +21,7 @@
 
         <activity
             android:name=".ScreenCaptureRequestActivity"
-            android:theme="@style/Theme.AppCompat.TransparentActivity"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar"
             android:exported="false" />
 
         <service
