@@ -22,5 +22,17 @@
             android:name=".FloatingOverlayService"
             android:enabled="true"
             android:exported="false" />
+
+        <service
+            android:name=".GrannyAccessibilityService"
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.accessibilityservice.AccessibilityService"/>
+            </intent-filter>
+            <meta-data
+                android:name="android.accessibilityservice.accessibility-service"
+                android:resource="@xml/accessibility_service_config" />
+        </service>
     </application>
 </manifest>
