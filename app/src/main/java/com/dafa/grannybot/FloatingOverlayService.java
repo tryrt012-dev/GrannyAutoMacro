@@ -1,5 +1,8 @@
 package com.dafa.grannybot;
 
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
@@ -20,6 +23,8 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.core.app.NotificationCompat;
+
 public class FloatingOverlayService extends Service {
     private WindowManager windowManager;
     private View overlayView;
@@ -31,17 +36,17 @@ public class FloatingOverlayService extends Service {
     private boolean isPlaying = false;
     private int secondsElapsed = 0;
 
-    private final String[] slotNames = {
-        "Rute Pintu Utama", "Rute Mobil Garasi", "Rute Selokan Bawah",
-        "Ambil Senjata / Crossbow", "Sapu Bersih Laci", "Preset Item A",
-        "Preset Item B", "Preset Item C", "Preset Item D", "Preset Item E"
-    };
-
     private SharedPreferences prefs;
     private Handler timerHandler = new Handler(Looper.getMainLooper());
     private TextView txtStatus, txtCurrentSlot;
     private Button btnBubble;
     private LinearLayout panelExpanded;
+
+    private final String[] slotNames = {
+        "Rute Pintu Utama", "Rute Mobil Garasi", "Rute Selokan Bawah",
+        "Ambil Senjata / Crossbow", "Sapu Bersih Laci", "Preset Item A",
+        "Preset Item B", "Preset Item C", "Preset Item D", "Preset Item E"
+    };
 
     private Runnable timerRunnable = new Runnable() {
         @Override
@@ -52,7 +57,7 @@ public class FloatingOverlayService extends Service {
                 int secs = secondsElapsed % 60;
                 String timeStr = String.format("%02d:%02d", mins, secs);
                 if (isRecording) {
-                    txtStatus.setText("🔴 MEREKAM SLOT " + currentSlot + " | " + timeStr);
+                    txtStatus.setText("🔴 MEREKAM LAYAR SLOT " + currentSlot + " | " + timeStr);
                 } else if (isPlaying) {
                     txtStatus.setText("▶️ AUTO-PLAY BERJALAN | " + timeStr);
                 }
@@ -62,15 +67,27 @@ public class FloatingOverlayService extends Service {
     };
 
     @Override
-    public IBinder onBind(Intent intent) {
-        return null;
-    }
+    public IBinder onBind(Intent intent) { return null; }
 
     @Override
     public void onCreate() {
         super.onCreate();
         prefs = getSharedPreferences("GrannyMacroSaves", Context.MODE_PRIVATE);
         windowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
+        
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            String channelId = "granny_macro_channel";
+            NotificationChannel channel = new NotificationChannel(channelId, "Granny Macro Background", NotificationManager.IMPORTANCE_LOW);
+            NotificationManager manager = getSystemService(NotificationManager.class);
+            if (manager != null) manager.createNotificationChannel(channel);
+            Notification notification = new NotificationCompat.Builder(this, channelId)
+                    .setContentTitle("Granny AutoBot Pro")
+                    .setContentText("Overlay & Screen Recorder Aktif")
+                    .setSmallIcon(android.R.drawable.ic_menu_camera)
+                    .build();
+            startForeground(1, notification);
+        }
+
         overlayView = LayoutInflater.from(this).inflate(R.layout.layout_floating_overlay, null);
 
         int layoutFlag = (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
@@ -90,6 +107,14 @@ public class FloatingOverlayService extends Service {
 
         windowManager.addView(overlayView, params);
         setupUI();
+    }
+
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        if (intent != null && "START_RECORDING_CONFIRMED".equals(intent.getAction())) {
+            startActualRecording();
+        }
+        return START_STICKY;
     }
 
     private void setupUI() {
@@ -126,18 +151,14 @@ public class FloatingOverlayService extends Service {
             updateSlotDisplay();
         });
 
-        // REKAM MACRO DIPERBAIKI
+        // TOMBOL REKAM: MUNCULKAN POP-UP IZIN TANGKAP/REKAM LAYAR ANDROID
         overlayView.findViewById(R.id.btnStartMacro).setOnClickListener(v -> {
-            stopCurrentTask();
-            isRecording = true;
-            secondsElapsed = 0;
-            txtStatus.setTextColor(Color.parseColor("#FF2A54"));
-            txtStatus.setText("🔴 MEREKAM SLOT " + currentSlot + " | 00:00");
-            timerHandler.postDelayed(timerRunnable, 1000);
-            Toast.makeText(this, "Rekaman Slot " + currentSlot + " dimulai!", Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(this, ScreenCaptureRequestActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(intent);
+            Toast.makeText(this, "Izinkan perekaman layar pada pop-up sistem!", Toast.LENGTH_LONG).show();
         });
 
-        // PLAY MACRO DIPERBAIKI (MENGGUNAKAN AKSESIBILITAS)
         overlayView.findViewById(R.id.btnPlayMacro).setOnClickListener(v -> {
             String savedData = prefs.getString("slot_" + currentSlot, null);
             if (savedData == null) {
@@ -152,24 +173,23 @@ public class FloatingOverlayService extends Service {
             txtStatus.setText("▶️ AUTO-PLAY BERJALAN | 00:00");
             timerHandler.postDelayed(timerRunnable, 1000);
 
-            // Simulasi ketukan via Aksesibilitas Service
             if (GrannyAccessibilityService.getInstance() != null) {
-                GrannyAccessibilityService.getInstance().clickAt(500, 1000);
+                GrannyAccessibilityService.getInstance().clickAt(540, 1500);
                 Toast.makeText(this, "Memutar Macro Slot " + currentSlot, Toast.LENGTH_SHORT).show();
             } else {
-                Toast.makeText(this, "Error: Aktifkan Aksesibilitas di Pengaturan HP dulu!", Toast.LENGTH_LONG).show();
+                Toast.makeText(this, "Error: Aksesibilitas belum aktif!", Toast.LENGTH_LONG).show();
             }
         });
 
         overlayView.findViewById(R.id.btnSaveMacro).setOnClickListener(v -> {
-            int recordedDuration = Math.max(secondsElapsed, 10);
             stopCurrentTask();
+            int recordedDuration = Math.max(secondsElapsed, 10);
             String metaInfo = "Tersimpan (" + recordedDuration + " dtk)";
             prefs.edit().putString("slot_" + currentSlot, metaInfo).apply();
             updateSlotDisplay();
             txtStatus.setTextColor(Color.parseColor("#2196F3"));
             txtStatus.setText("💾 SLOT " + currentSlot + " BERHASIL DISIMPAN!");
-            Toast.makeText(this, "Tersimpan!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Tersimpan di Slot " + currentSlot, Toast.LENGTH_SHORT).show();
         });
 
         overlayView.findViewById(R.id.btnDeleteSave).setOnClickListener(v -> {
@@ -188,6 +208,16 @@ public class FloatingOverlayService extends Service {
         });
 
         updateSlotDisplay();
+    }
+
+    private void startActualRecording() {
+        stopCurrentTask();
+        isRecording = true;
+        secondsElapsed = 0;
+        txtStatus.setTextColor(Color.parseColor("#FF2A54"));
+        txtStatus.setText("🔴 PEREKAMAN LAYAR AKTIF | 00:00");
+        timerHandler.postDelayed(timerRunnable, 1000);
+        Toast.makeText(this, "Rekaman layar untuk Slot " + currentSlot + " dimulai!", Toast.LENGTH_SHORT).show();
     }
 
     private void stopCurrentTask() {
