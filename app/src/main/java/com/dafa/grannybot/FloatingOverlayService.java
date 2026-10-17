@@ -9,6 +9,8 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.PixelFormat;
+import android.media.projection.MediaProjection;
+import android.media.projection.MediaProjectionManager;
 import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
@@ -35,6 +37,9 @@ public class FloatingOverlayService extends Service {
     private boolean isRecording = false;
     private boolean isPlaying = false;
     private int secondsElapsed = 0;
+
+    private MediaProjectionManager projectionManager;
+    private MediaProjection mediaProjection;
 
     private SharedPreferences prefs;
     private Handler timerHandler = new Handler(Looper.getMainLooper());
@@ -74,7 +79,8 @@ public class FloatingOverlayService extends Service {
         super.onCreate();
         prefs = getSharedPreferences("GrannyMacroSaves", Context.MODE_PRIVATE);
         windowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
-        
+        projectionManager = (MediaProjectionManager) getSystemService(Context.MEDIA_PROJECTION_SERVICE);
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             String channelId = "granny_macro_channel";
             NotificationChannel channel = new NotificationChannel(channelId, "Granny Macro Background", NotificationManager.IMPORTANCE_LOW);
@@ -82,7 +88,7 @@ public class FloatingOverlayService extends Service {
             if (manager != null) manager.createNotificationChannel(channel);
             Notification notification = new NotificationCompat.Builder(this, channelId)
                     .setContentTitle("Granny AutoBot Pro")
-                    .setContentText("Overlay & Screen Recorder Aktif")
+                    .setContentText("Floating Overlay & Screen Recorder Aktif")
                     .setSmallIcon(android.R.drawable.ic_menu_camera)
                     .build();
             startForeground(1, notification);
@@ -112,6 +118,11 @@ public class FloatingOverlayService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         if (intent != null && "START_RECORDING_CONFIRMED".equals(intent.getAction())) {
+            int resultCode = intent.getIntExtra("code", RESULT_OK);
+            Intent data = intent.getParcelableExtra("data");
+            if (projectionManager != null && data != null) {
+                mediaProjection = projectionManager.getMediaProjection(resultCode, data);
+            }
             startActualRecording();
         }
         return START_STICKY;
@@ -151,12 +162,12 @@ public class FloatingOverlayService extends Service {
             updateSlotDisplay();
         });
 
-        // TOMBOL REKAM: MUNCULKAN POP-UP IZIN TANGKAP/REKAM LAYAR ANDROID
+        // PANGGIL IZIN REKAM LAYAR SYSTEM
         overlayView.findViewById(R.id.btnStartMacro).setOnClickListener(v -> {
             Intent intent = new Intent(this, ScreenCaptureRequestActivity.class);
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             startActivity(intent);
-            Toast.makeText(this, "Izinkan perekaman layar pada pop-up sistem!", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "Izinkan rekam layar pada pop-up sistem!", Toast.LENGTH_LONG).show();
         });
 
         overlayView.findViewById(R.id.btnPlayMacro).setOnClickListener(v -> {
@@ -215,9 +226,9 @@ public class FloatingOverlayService extends Service {
         isRecording = true;
         secondsElapsed = 0;
         txtStatus.setTextColor(Color.parseColor("#FF2A54"));
-        txtStatus.setText("🔴 PEREKAMAN LAYAR AKTIF | 00:00");
+        txtStatus.setText("🔴 REKAM LAYAR AKTIF | 00:00");
         timerHandler.postDelayed(timerRunnable, 1000);
-        Toast.makeText(this, "Rekaman layar untuk Slot " + currentSlot + " dimulai!", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "Perekaman rute layar dimulai!", Toast.LENGTH_SHORT).show();
     }
 
     private void stopCurrentTask() {
@@ -261,6 +272,10 @@ public class FloatingOverlayService extends Service {
     public void onDestroy() {
         super.onDestroy();
         stopCurrentTask();
+        if (mediaProjection != null) {
+            mediaProjection.stop();
+            mediaProjection = null;
+        }
         if (overlayView != null) windowManager.removeView(overlayView);
     }
 }
